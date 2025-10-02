@@ -5,6 +5,7 @@ interface Message {
   type: 'user' | 'bot';
   content: string;
   data?: Record<string, unknown>[];
+  isGreeting?: boolean;
 }
 
 export default function ChatForm() {
@@ -67,41 +68,21 @@ export default function ChatForm() {
         return; 
       }
       
-      // Bot mesajını kullanıcının sorusuna göre formatla
-      let responseText = "İşte sonuçlar:";
-      
-      // Soruya göre özel yanıt formatları
-      const lowerMessage = userMessage.toLowerCase();
-      if (lowerMessage.includes('en çok dinlenen şarkı') && !lowerMessage.includes('şarkılar')) {
-        responseText = "İşte en çok dinlenen şarkı:";
-      } else if (lowerMessage.includes('en çok dinlenen') && lowerMessage.includes('şarkı')) {
-        const numberMatch = userMessage.match(/(\d+)/);
-        if (numberMatch) {
-          responseText = `İşte en çok dinlenen ${numberMatch[1]} şarkı:`;
-        } else {
-          responseText = "İşte en çok dinlenen şarkılar:";
-        }
-      } else if (lowerMessage.includes('en popüler şarkı') && !lowerMessage.includes('şarkılar')) {
-        responseText = "İşte en popüler şarkı:";
-      } else if (lowerMessage.includes('en çok dinlenen sanatçı') && !lowerMessage.includes('sanatçılar')) {
-        responseText = "İşte en çok dinlenen sanatçı:";
-      } else if (lowerMessage.includes('en çok dinlenen') && lowerMessage.includes('sanatçı')) {
-        const numberMatch = userMessage.match(/(\d+)/);
-        if (numberMatch) {
-          responseText = `İşte en çok dinlenen ${numberMatch[1]} sanatçı:`;
-        } else {
-          responseText = "İşte en çok dinlenen sanatçılar:";
-        }
-      } else if (lowerMessage.includes('hangi şarkı')) {
-        responseText = "İşte aradığınız şarkı:";
-      } else if (lowerMessage.includes('hangi sanatçı')) {
-        responseText = "İşte aradığınız sanatçı:";
+      // Selamlaşma kontrolü
+      if (data.greeting) {
+        setMessages(prev => [...prev, {
+          type: 'bot',
+          content: data.message,
+          isGreeting: true
+        }]);
+        return;
       }
-
+      
+      // Backend'den formatlanmış mesaj gelir
       setMessages(prev => [...prev, {
         type: 'bot',
-        content: responseText,
-        data: data.rows
+        content: data.message,
+        data: data.data
       }]);
     } catch {
       setMessages(prev => [...prev, {
@@ -130,7 +111,16 @@ export default function ChatForm() {
                 ? 'bg-green-500 text-white' 
                 : 'bg-gray-700 text-green-400 shadow-sm border border-green-600'
             }`}>
-              <p>{message.content}</p>
+              {message.type === 'bot' && message.isGreeting ? (
+                // Selamlaşma mesajı için özel formatting
+                <div className="prose prose-sm prose-invert max-w-none">
+                  <div dangerouslySetInnerHTML={{ 
+                    __html: message.content.replace(/\n/g, '<br />').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+                  }} />
+                </div>
+              ) : (
+                <p>{message.content}</p>
+              )}
               
               {/* Bot'un veri yanıtları */}
               {message.type === 'bot' && message.data && message.data.length > 0 && (
