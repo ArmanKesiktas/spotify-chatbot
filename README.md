@@ -1,13 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Spotify Data Warehouse Chatbot
 
-## Getting Started
+Spotify verilerinizi Türkçe sorularla sorgulayabileceğiniz bir AI chatbot uygulaması. Google Gemini AI kullanarak doğal dil sorularını PostgreSQL sorgularına çevirir.
 
-First, run the development server:
+## Özellikler
+
+- 🎵 Spotify dinleme verilerinizi analiz edin
+- 🇹🇷 Türkçe sorular sorun 
+- 🤖 AI ile doğal dil → SQL çevirisi
+- 📊 Sonuçları tablo halinde görüntüleyin
+- 🔒 Güvenli SQL sorguları (sadece SELECT)
+
+## Kurulum
+
+1. **Bağımlılıkları yükleyin:**
+   ```bash
+   npm install
+   ```
+
+2. **Çevre değişkenlerini ayarlayın:**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   `.env` dosyasını düzenleyerek gerekli değerleri ekleyin:
+   - `GEMINI_API_KEY`: Google Gemini API anahtarınız
+   - `DATABASE_URL`: PostgreSQL veritabanı bağlantı URL'niz
+
+3. **Veritabanını kurun:**
+   ```bash
+   # PostgreSQL veritabanınızda db/init/ klasöründeki SQL dosyalarını çalıştırın
+   psql -f db/init/001_schema.sql
+   psql -f db/init/002_seed.sql
+   ```
+
+## Geliştirme
 
 ```bash
+# Geliştirme sunucusunu başlatın
 npm run dev
-# or
-yarn dev
+
+# Kodu derleyin
+npm run build
+
+# Linting kontrolü
+npm run lint
+```
+
+## Kullanım
+
+1. Uygulamayı açın: http://localhost:3000
+2. Spotify verileriniz hakkında Türkçe sorular sorun:
+   - "En çok dinlenen müzik hangisi?"
+   - "Son 30 günde en çok dinlediğim 5 sanatçı"
+   - "Lana Del Rey için toplam dinleme dakikası"
+
+## Veritabanı Şeması
+
+**spotify_plays** tablosu:
+- `spotify_track_uri`: Spotify track URI
+- `ts`: Dinleme zamanı
+- `platform`: Platform (mobil, web, vs.)
+- `ms_played`: Dinleme süresi (milisaniye)
+- `track_name`: Şarkı adı
+- `artist_name`: Sanatçı adı
+- `album_name`: Albüm adı
+- `reason_start`: Dinlemeye başlama sebebi
+- `reason_end`: Dinlemeyi bitirme sebebi
+- `shuffle`: Karışık mod aktif mi
+- `skipped`: Şarkı atlandı mı
+
+## Güvenlik
+
+- Sadece SELECT sorguları çalıştırılabilir
+- Otomatik LIMIT 200 eklenir
+- Tehlikeli SQL komutları engellenir
+- SQL injection koruması mevcuttur
+
+## Teknolojiler
+
+- Next.js 15 (App Router)
+- TypeScript
+- Google Gemini AI
+- PostgreSQL
+- Tailwind CSS
+- React 19
 # or
 pnpm dev
 # or
