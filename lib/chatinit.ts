@@ -1,5 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+interface Model {
+  name: string;
+  supportedGenerationMethods: string[];
+}
+
+interface ModelsResponse {
+  models: Model[];
+}
+
 let model: ReturnType<GoogleGenerativeAI['getGenerativeModel']> | null = null;
 
 export async function getModel() {
@@ -17,10 +26,10 @@ export async function getModel() {
       throw new Error(`Failed to fetch models: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data: ModelsResponse = await response.json();
     
     // generateContent destekleyen modelleri filtrele
-    const supportedModels = data.models?.filter((m: any) => 
+    const supportedModels = data.models?.filter((m: Model) => 
       m.supportedGenerationMethods?.includes('generateContent')
     ) || [];
     
@@ -33,7 +42,7 @@ export async function getModel() {
     let selectedModel = supportedModels[0]; // fallback
     
     for (const preference of preferredOrder) {
-      const found = supportedModels.find((m: any) => 
+      const found = supportedModels.find((m: Model) => 
         m.name.toLowerCase().includes(preference)
       );
       if (found) {
@@ -44,7 +53,7 @@ export async function getModel() {
     
     const modelName = selectedModel.name;
     console.log(`Using model: ${modelName}`);
-    console.log(`Available models: ${supportedModels.map((m: any) => m.name).join(', ')}`);
+    console.log(`Available models: ${supportedModels.map((m: Model) => m.name).join(', ')}`);
     
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
     model = genAI.getGenerativeModel({ 

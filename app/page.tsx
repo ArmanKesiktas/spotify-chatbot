@@ -79,16 +79,16 @@ export default function Page() {
           {/* Mobil için kompakt görünüm */}
           <div className="block lg:hidden space-y-2 text-xs text-green-300">
             <div>
-              <span className="font-medium text-green-400">🎵</span> "en çok dinlenen şarkı"
+              <span className="font-medium text-green-400">🎵</span> &quot;en çok dinlenen şarkı&quot;
             </div>
             <div>
-              <span className="font-medium text-green-400">🎤</span> "en popüler sanatçı"
+              <span className="font-medium text-green-400">🎤</span> &quot;en popüler sanatçı&quot;
             </div>
             <div>
-              <span className="font-medium text-green-400">📅</span> "2014'te en çok dinlenen"
+              <span className="font-medium text-green-400">📅</span> &quot;2014&apos;te en çok dinlenen&quot;
             </div>
             <div>
-              <span className="font-medium text-green-400">📊</span> "toplam dinleme süresi"
+              <span className="font-medium text-green-400">📊</span> &quot;toplam dinleme süresi&quot;
             </div>
           </div>
           
@@ -97,28 +97,28 @@ export default function Page() {
             <div>
               <span className="font-medium text-green-400">🎵 En Popüler Şarkılar:</span>
               <div className="ml-4 text-xs">
-                "en çok dinlenen şarkı" • "en popüler 5 şarkı"
+                &quot;en çok dinlenen şarkı&quot; • &quot;en popüler 5 şarkı&quot;
               </div>
             </div>
             
             <div>
               <span className="font-medium text-green-400">🎤 Sanatçı Bilgileri:</span>
               <div className="ml-4 text-xs">
-                "en çok dinlenen sanatçı" • "Taylor Swift'in şarkıları"
+                &quot;en çok dinlenen sanatçı&quot; • &quot;Taylor Swift&apos;in şarkıları&quot;
               </div>
             </div>
             
             <div>
               <span className="font-medium text-green-400">📅 Tarih Bazlı Sorgular:</span>
               <div className="ml-4 text-xs">
-                "2013'te en popüler şarkı" • "2015 yılının hit şarkıları"
+                &quot;2013&apos;te en popüler şarkı&quot; • &quot;2015 yılının hit şarkıları&quot;
               </div>
             </div>
             
             <div>
               <span className="font-medium text-green-400">📊 İstatistikler:</span>
               <div className="ml-4 text-xs">
-                "toplam dinleme süresi" • "en uzun şarkı"
+                &quot;toplam dinleme süresi&quot; • &quot;en uzun şarkı&quot;
               </div>
             </div>
           </div>

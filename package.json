@@ -1,5 +1,6 @@
 {
   "name": "dwh-chatbot",
+  "homepage": "https://armankesiktas.github.io/spotify-chatbot/",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +10,9 @@
     "lint": "eslint",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
-    "db:logs": "docker-compose logs -f"
+    "db:logs": "docker-compose logs -f",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d out"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -27,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

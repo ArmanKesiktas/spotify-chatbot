@@ -48,13 +48,16 @@ export default function ChatForm() {
     setLastRequest(now);
 
     try {
+      console.log("API çağrısı başlatılıyor...");
       const r = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage }),
       });
       
+      console.log("API response status:", r.status);
       const data = await r.json();
+      console.log("API response data:", data);
       
       if (!data.ok) { 
         setMessages(prev => [...prev, {
@@ -100,7 +103,7 @@ export default function ChatForm() {
         content: responseText,
         data: data.rows
       }]);
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, {
         type: 'bot',
         content: "Bağlantı hatası. Lütfen tekrar deneyin."

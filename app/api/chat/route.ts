@@ -46,7 +46,9 @@ function secure(sqlRaw: string): string {
 
 export async function POST(req: Request) {
   try {
+    console.log("API route çağrıldı");
     const { message } = await req.json();
+    console.log("Gelen mesaj:", message);
 
     // Rate limiting kontrolü
     if (!message || message.trim().length === 0) {
@@ -82,8 +84,12 @@ SQL:`;
 
     // Retry logic ile AI çağrısı
     let lastError = null;
+    console.log("Environment check - GOOGLE_AI_API_KEY exists:", !!process.env.GOOGLE_AI_API_KEY);
+    console.log("Environment check - DATABASE_URL exists:", !!process.env.DATABASE_URL);
+    
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
+        console.log(`AI çağrısı deneme ${attempt}/3`);
         const model = await getModel();
         const result = await model.generateContent(prompt);
         
