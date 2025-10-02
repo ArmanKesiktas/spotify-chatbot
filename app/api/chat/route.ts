@@ -73,15 +73,20 @@ GÖREV: Kullanıcının sorusuna göre SADECE PostgreSQL SELECT sorgusu yaz.
 ÖNEMLİ KURALLAR:
 - Kod bloğu kullanma
 - Sadece SQL kodu döndür
+- TARİH FİLTRELEME için EXTRACT(YEAR FROM ts) = YYYY kullan
 - Eğer kullanıcı TEKİL ifade kullanıyorsa (örn: "en çok dinlenen şarkı", "en popüler sanatçı") LIMIT 1 kullan
 - Eğer kullanıcı ÇOĞUL ifade kullanıyorsa (örn: "en çok dinlenen şarkılar", "popüler sanatçılar") veya sayı belirtiyorsa (örn: "5 şarkı", "10 sanatçı") uygun LIMIT kullan
 - Sayı belirtilmemişse varsayılan olarak LIMIT 10 kullan
 
-ÖRNEKLER:
-- "en çok dinlenen şarkı" → LIMIT 1
-- "en çok dinlenen 3 şarkı" → LIMIT 3  
-- "en popüler şarkılar" → LIMIT 10
-- "en çok dinlenen sanatçı" → LIMIT 1
+TARİH ÖRNEKLERİ:
+- "2013'te en çok dinlenen şarkı" → WHERE EXTRACT(YEAR FROM ts) = 2013 ORDER BY ms_played DESC LIMIT 1
+- "2014 yılında en popüler sanatçı" → WHERE EXTRACT(YEAR FROM ts) = 2014 GROUP BY artist_name ORDER BY COUNT(*) DESC LIMIT 1
+
+DİĞER ÖRNEKLER:
+- "en çok dinlenen şarkı" → ORDER BY ms_played DESC LIMIT 1
+- "en çok dinlenen 3 şarkı" → ORDER BY ms_played DESC LIMIT 3  
+- "en popüler şarkılar" → ORDER BY ms_played DESC LIMIT 10
+- "en çok dinlenen sanatçı" → GROUP BY artist_name ORDER BY COUNT(*) DESC LIMIT 1
 
 Kullanıcı sorusu: ${message}
 
@@ -111,7 +116,11 @@ SQL:`;
         }
         
         const sql = secure(text);
+        console.log("🔍 Generated SQL:", sql);
+        console.log("🎯 User question:", message);
+        
         const rows = await query(sql);
+        console.log("✅ Query successful, rows:", rows?.length);
 
         return NextResponse.json({ ok: true, sql, rows });
       } catch (error: unknown) {
