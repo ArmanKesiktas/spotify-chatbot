@@ -50,6 +50,11 @@ export async function POST(req: Request) {
     const { message } = await req.json();
     console.log("Gelen mesaj:", message);
 
+    // Environment variables kontrolü
+    console.log("Environment check - GOOGLE_AI_API_KEY exists:", !!process.env.GOOGLE_AI_API_KEY);
+    console.log("Environment check - POSTGRES_URL exists:", !!process.env.POSTGRES_URL);
+    console.log("Environment check - DATABASE_URL exists:", !!process.env.DATABASE_URL);
+
     // Rate limiting kontrolü
     if (!message || message.trim().length === 0) {
       return NextResponse.json({ ok: false, error: "Mesaj boş olamaz" }, { status: 400 });
