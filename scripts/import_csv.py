@@ -46,10 +46,16 @@ def import_csv_to_postgres():
             print("📍 Mevcut dizin:", os.getcwd())
             print("📂 Dosyalar:", os.listdir('../db/init/'))
             return
-        with open(csv_file, 'r', encoding='utf-8') as file:
+        with open(csv_file, 'r', encoding='utf-8-sig') as file:  # BOM'u handle et
             csv_reader = csv.DictReader(file)
             for row_num, row in enumerate(csv_reader, 1):
                 try:
+                    # Boş veya eksik spotify_track_uri'yi skip et
+                    if not row.get('spotify_track_uri') or row['spotify_track_uri'].strip() == '':
+                        if row_num <= 10:  # İlk 10 hatayı göster
+                            print(f"⚠️ Satır {row_num} spotify_track_uri eksik, atlanıyor...")
+                        continue
+                    
                     # Boolean değerleri dönüştür
                     shuffle = row['shuffle'].upper() == 'TRUE'
                     skipped = row['skipped'].upper() == 'TRUE'

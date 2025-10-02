@@ -1,10 +1,13 @@
 import { Pool, QueryResultRow } from "pg";
 
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+let connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
   throw new Error("No database connection string found");
 }
+
+// Remove channel_binding parameter which can cause issues
+connectionString = connectionString.replace(/[&?]channel_binding=require/g, '');
 
 console.log("Database connection string exists:", !!connectionString);
 console.log("Connection string starts with:", connectionString.substring(0, 15));
