@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 interface Model {
   name: string;
@@ -38,7 +38,7 @@ export async function getModel() {
     }
     
     // Free tier için küçük modelleri tercih et (flash > pro)
-    const preferredOrder = ['flash', 'gemini-1.0', 'gemini-pro'];
+    const preferredOrder = ['gemini-2.0-flash', 'flash', 'gemini-1.0', 'gemini-pro'];
     let selectedModel = supportedModels[0]; // fallback
     
     for (const preference of preferredOrder) {
@@ -61,7 +61,25 @@ export async function getModel() {
       generationConfig: {
         maxOutputTokens: 200, // SQL sorguları için daha yüksek token sınırı
         temperature: 0.1, // Daha deterministik yanıtlar
-      }
+      },
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+      ]
     });
   }
   

@@ -4,11 +4,16 @@ import { dbSchema } from "@/lib/schemaPrompt";
 import { query } from "@/lib/db";
 
 function secure(sqlRaw: string): string {
-  // Temizlik
-  let sql = sqlRaw.replace(/```/g, "").replace(/sql/gi, "").trim();
+  // AI response'dan SQL'i extract et
+  let sql = sqlRaw.trim();
   
-  // Sadece tek satır SQL al (çoklu satır varsa ilkini al)
-  sql = sql.split('\n')[0].trim();
+  // Code block'ları temizle
+  sql = sql.replace(/```sql\s*/gi, "").replace(/```\s*/g, "").trim();
+  
+  // Çoklu satırları birleştir ama keyword'lerin arasında space koru
+  sql = sql.replace(/\n\s*/g, " ").replace(/\s+/g, " ").trim();
+  
+  console.log("Cleaned SQL:", sql);
   
   const lowered = sql.toLowerCase();
 
@@ -64,31 +69,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Mesaj çok uzun (max 500 karakter)" }, { status: 400 });
     }
 
-    const prompt = `Sen bir SQL uzmanısın. Kullanıcı Türkçe soru soracak.
+    // Basit ve kısa prompt
+    const prompt = `Database table: spotify_plays
+Columns: id, ts (timestamp), username, platform, ms_played, conn_country, ip_addr_decrypted, user_agent_decrypted, track_name, artist_name, album_name, spotify_track_uri
 
-${dbSchema}
+Question: ${message}
 
-GÖREV: Kullanıcının sorusuna göre SADECE PostgreSQL SELECT sorgusu yaz.
-
-ÖNEMLİ KURALLAR:
-- Kod bloğu kullanma
-- Sadece SQL kodu döndür
-- TARİH FİLTRELEME için EXTRACT(YEAR FROM ts) = YYYY kullan
-- Eğer kullanıcı TEKİL ifade kullanıyorsa (örn: "en çok dinlenen şarkı", "en popüler sanatçı") LIMIT 1 kullan
-- Eğer kullanıcı ÇOĞUL ifade kullanıyorsa (örn: "en çok dinlenen şarkılar", "popüler sanatçılar") veya sayı belirtiyorsa (örn: "5 şarkı", "10 sanatçı") uygun LIMIT kullan
-- Sayı belirtilmemişse varsayılan olarak LIMIT 10 kullan
-
-TARİH ÖRNEKLERİ:
-- "2013'te en çok dinlenen şarkı" → WHERE EXTRACT(YEAR FROM ts) = 2013 ORDER BY ms_played DESC LIMIT 1
-- "2014 yılında en popüler sanatçı" → WHERE EXTRACT(YEAR FROM ts) = 2014 GROUP BY artist_name ORDER BY COUNT(*) DESC LIMIT 1
-
-DİĞER ÖRNEKLER:
-- "en çok dinlenen şarkı" → ORDER BY ms_played DESC LIMIT 1
-- "en çok dinlenen 3 şarkı" → ORDER BY ms_played DESC LIMIT 3  
-- "en popüler şarkılar" → ORDER BY ms_played DESC LIMIT 10
-- "en çok dinlenen sanatçı" → GROUP BY artist_name ORDER BY COUNT(*) DESC LIMIT 1
-
-Kullanıcı sorusu: ${message}
+Write a PostgreSQL SELECT query. Rules:
+- Only SELECT statements
+- Use EXTRACT(YEAR FROM ts) for year filtering
+- Add appropriate LIMIT
+- No code blocks, just the SQL
 
 SQL:`;
 
@@ -103,16 +94,27 @@ SQL:`;
         const model = await getModel();
         const result = await model.generateContent(prompt);
         
+        console.log("AI Result object:", !!result);
+        console.log("AI Response object:", !!result?.response);
+        
+        // Response detaylarını kontrol et
+        if (result?.response) {
+          console.log("Response candidates:", result.response.candidates?.length);
+          console.log("Finish reason:", result.response.candidates?.[0]?.finishReason);
+          console.log("Safety ratings:", result.response.candidates?.[0]?.safetyRatings);
+        }
+        
         // AI yanıtını daha detaylı kontrol et
         if (!result || !result.response) {
           throw new Error("AI'dan geçersiz yanıt alındı");
         }
         
         const text = result.response.text();
-        console.log("AI Raw Response:", text);
+        console.log("AI Raw Response (full):", text);
+        console.log("AI Raw Response (length):", text?.length);
         
         if (!text || text.trim() === "") {
-          throw new Error("Üzgünüm, böyle bir veri bulamadım. Başka bir soru sormaya ne dersiniz?");
+          throw new Error("AI'dan boş yanıt alındı");
         }
         
         const sql = secure(text);
@@ -144,6 +146,32 @@ SQL:`;
         if (attempt < 3) {
           await new Promise(resolve => setTimeout(resolve, 1000));
           continue;
+        }
+        
+        // Son deneme, fallback kullan
+        console.log("AI başarısız, fallback SQL kullanılıyor");
+        const fallbackSql = "SELECT track_name, artist_name, ms_played FROM spotify_plays ORDER BY ms_played DESC LIMIT 5";
+        
+        try {
+          const result = await query(fallbackSql);
+          console.log("Fallback query successful:", result);
+          
+          if (result.length === 0) {
+            return NextResponse.json({ 
+              ok: false, 
+              error: "Henüz hiç veri yok. Lütfen daha sonra tekrar deneyin." 
+            }, { status: 404 });
+          }
+
+          return NextResponse.json({ 
+            ok: true, 
+            rows: result,
+            message: `AI şu anda yanıt veremiyor, en çok dinlenen 5 şarkınızı gösteriyorum`,
+            sql: fallbackSql
+          });
+        } catch (dbError) {
+          console.error("Fallback database hatası:", dbError);
+          // Normal hata döndür
         }
       }
     }
